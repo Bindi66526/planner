@@ -32,6 +32,7 @@
       --accent-soft: #efeafc;
       --accent-contrast: #ffffff;
       --check-bg: #5b21b6;
+      --danger: #b42318;
       --yellow: #facc15;
       --yellow-soft: #fef8d6;
       --card: #3b0f8c;
@@ -54,6 +55,7 @@
         --accent-soft: #2d2347;
         --accent-contrast: #1a1033;
         --check-bg: #6d28d9;
+        --danger: #fda29b;
         --yellow-soft: #3a3214;
         --card: #4c1d95;
         --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25);
@@ -393,10 +395,89 @@
     .note-foot { display: flex; align-items: center; justify-content: flex-end; margin-top: 2px; }
     .note-date { flex: 1; color: var(--muted); font-size: .85rem; }
 
+    /* Notes tab switch and daily log */
+    .switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      margin-bottom: 18px;
+      background: var(--accent-soft);
+      border-radius: 12px;
+    }
+    .switch-btn {
+      min-height: 44px;
+      background: none;
+      border: 0;
+      border-radius: 9px;
+      color: var(--muted);
+      font-size: .92rem;
+      font-weight: 600;
+    }
+    .switch-btn[aria-pressed="true"] { background: var(--check-bg); color: var(--yellow); }
+    .log-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .log-title { margin: 0; font-size: 1.05rem; font-weight: 600; text-align: center; }
+    .icon-btn:disabled { opacity: .3; cursor: default; }
+    .log-input { min-height: 36vh; max-height: 60vh; }
+    .log-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; margin-bottom: 14px; }
+    .log-row {
+      width: 100%;
+      min-height: 44px;
+      display: block;
+      padding: 10px 14px;
+      background: none;
+      border: 0;
+      border-top: 1px solid var(--border);
+      text-align: left;
+    }
+    li:first-child > .log-row { border-top: 0; }
+    .log-row-date { display: block; color: var(--accent); font-size: .85rem; font-weight: 600; }
+    .log-row-text {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+    }
+
+    /* Exercise details box */
+    .sheet {
+      width: min(528px, calc(100% - 32px));
+      max-width: none;
+      max-height: calc(100dvh - 32px);
+      margin: max(32px, env(safe-area-inset-top)) auto auto;
+      padding: 18px 16px 16px;
+      overflow: auto;
+      background: var(--raised);
+      border: 0;
+      border-radius: 18px;
+      color: var(--text);
+    }
+    .sheet::backdrop { background: rgba(20, 10, 50, .55); }
+    .sheet-title { margin: 0; font-size: 1.1rem; font-weight: 600; outline: none; }
+    .sheet-date { margin: 0 0 14px; color: var(--muted); font-size: .9rem; }
+    .field { margin-bottom: 14px; }
+    .field-label { display: block; margin-bottom: 6px; font-size: .9rem; font-weight: 600; }
+    .field .text-input { display: block; width: 100%; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      min-width: 52px;
+      min-height: 44px;
+      padding: 0 12px;
+      background: var(--accent-soft);
+      border: 0;
+      border-radius: 22px;
+      color: var(--accent);
+      font-size: .92rem;
+      font-weight: 600;
+    }
+    .field-error { margin: 6px 0 0; color: var(--danger); font-size: .88rem; }
+    .sheet-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; }
+
     /* Exercise planner */
     .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
     .week-title { margin: 0; font-size: 1.05rem; font-weight: 600; text-align: center; }
-    .week-meta { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin-bottom: 8px; }
+    .week-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 10px; min-height: 44px; margin-bottom: 8px; text-align: center; }
     .link-btn {
       min-height: 44px;
       padding: 0 8px;
@@ -426,6 +507,17 @@
       border-bottom: 1px solid var(--border);
     }
     .planner .day-col { width: 52px; }
+    .planner thead th { vertical-align: bottom; }
+    .unit { display: block; font-size: .69rem; font-weight: 500; }
+    .check.has-value {
+      width: auto;
+      min-width: 24px;
+      padding: 0 4px;
+      border-radius: 12px;
+      font-size: .72rem;
+      font-weight: 700;
+      line-height: 1;
+    }
     .planner tbody th { padding-left: 2px; line-height: 1.15; }
     .planner tbody tr + tr > * { border-top: 1px solid var(--border); }
     .day-name { display: block; font-size: .85rem; font-weight: 600; }
@@ -442,6 +534,7 @@
       border: 0;
     }
     .day-btn:focus-visible { outline-offset: -3px; }
+    .planner tfoot tr + tr > * { border-top: 0; padding-top: 0; color: var(--text); }
     .planner tfoot th, .planner tfoot td {
       padding: 9px 0;
       border-top: 1px solid var(--border);
@@ -567,6 +660,8 @@
     </div>
   </nav>
 
+  <dialog class="sheet" id="detail-sheet" aria-labelledby="sheet-title"></dialog>
+
   <div class="toast" id="toast" hidden>
     <span class="toast-msg" id="toast-msg" role="status"></span>
     <button class="toast-action" id="toast-undo" type="button">Undo</button>
@@ -580,21 +675,33 @@
       var EXERCISE_KEY = 'todo-app.exercise.v1';
       var NOTES_KEY = 'todo-app.notes.v1';
       var NOTES_DRAFT_KEY = 'todo-app.notes-draft.v1';
+      var NOTES_VIEW_KEY = 'todo-app.notes-view.v1';
+      var DAY_LOG_KEY = 'todo-app.daylog.v1';
+      var EXERCISE_DETAILS_KEY = 'todo-app.exercise-details.v1';
       var UNDO_MS = 6000;
 
+      var FIELDS = {
+        minutes: { label: 'Minutes', unit: 'min', choices: [30, 45, 60] },
+        km: { label: 'Kilometres', unit: 'km', choices: [0.5, 1, 1.5, 2] },
+        seconds: { label: 'Seconds', unit: 'sec', choices: [30, 45, 60] }
+      };
+
+      // The first field is what the weekly table shows and totals.
       var ACTIVITIES = [
-        { id: 'yoga', label: 'Yoga' },
-        { id: 'gym', label: 'Gym' },
-        { id: 'pt', label: 'PT' },
-        { id: 'swimming', label: 'Swimming', short: 'Swim' },
-        { id: 'tennis', label: 'Tennis' },
-        { id: 'dead-hang', label: 'Dead hang' }
+        { id: 'yoga', label: 'Yoga', fields: ['minutes'] },
+        { id: 'gym', label: 'Gym', fields: ['minutes'] },
+        { id: 'pt', label: 'PT', fields: ['minutes'] },
+        { id: 'swimming', label: 'Swimming', short: 'Swim', fields: ['km', 'minutes'] },
+        { id: 'tennis', label: 'Tennis', fields: ['minutes'] },
+        { id: 'dead-hang', label: 'Dead hang', fields: ['seconds'] }
       ];
 
       var ICONS = {
         grip: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>',
         check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4.5 4.5L19 7"/></svg>',
         edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14 8l3 3"/></svg>',
+        back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+        forward: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
         close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
         trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v5M14 11v5"/></svg>'
       };
@@ -1180,6 +1287,143 @@
         })
       ];
 
+      /* ---------- Daily log ---------- */
+
+      function keyToDate(key) {
+        var parts = key.split('-').map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+
+      function createDayLog() {
+        var entries = load();
+        var todayKey = dateKey(new Date());
+        var selected = todayKey;
+
+        function load() {
+          var parsed = readJson(DAY_LOG_KEY);
+          return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+        }
+
+        var el = make('div');
+        var nav = make('div', 'log-nav');
+        var prev = iconButton('', 'Previous day', ICONS.back);
+        var title = make('h2', 'log-title');
+        title.setAttribute('aria-live', 'polite');
+        var next = iconButton('', 'Next day', ICONS.forward);
+        nav.append(prev, title, next);
+
+        var label = make('label', 'sr-only', 'What you did on this day');
+        label.htmlFor = 'log-input';
+        var input = make('textarea', 'text-input note-input log-input');
+        input.id = 'log-input';
+        input.placeholder = 'Tap the microphone on your keyboard and talk through your day.';
+
+        var meta = make('div', 'log-meta');
+        var status = make('span', 'count');
+        status.setAttribute('role', 'status');
+        var backToToday = make('button', 'link-btn', 'Back to today');
+        backToToday.type = 'button';
+        meta.append(status, backToToday);
+
+        var pastSection = make('section');
+        var pastHead = make('div', 'section-head');
+        pastHead.append(make('h2', '', 'Earlier days'));
+        var pastList = make('ul', 'list');
+        pastSection.append(pastHead, pastList);
+        el.append(nav, label, input, meta, pastSection);
+
+        function shiftDay(key, amount) {
+          var date = keyToDate(key);
+          return dateKey(new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount));
+        }
+
+        function saveNow() {
+          var text = input.value;
+          var known = typeof entries[selected] === 'string' ? entries[selected] : '';
+          if (text === known) return;
+          if (text.trim()) entries[selected] = text;
+          else delete entries[selected];
+          var saved = writeJson(DAY_LOG_KEY, entries);
+          status.textContent = saved ? 'Saved' : 'Not saved';
+          renderPast();
+        }
+
+        function renderPast() {
+          var keys = Object.keys(entries)
+            .filter(function (key) { return key !== selected && typeof entries[key] === 'string'; })
+            .sort()
+            .reverse();
+          pastList.replaceChildren.apply(pastList, keys.map(function (key) {
+            var li = make('li');
+            var row = make('button', 'log-row');
+            row.type = 'button';
+            row.append(
+              make('span', 'log-row-date', formatDate(keyToDate(key), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })),
+              make('span', 'log-row-text', entries[key])
+            );
+            row.addEventListener('click', function () {
+              select(key);
+              window.scrollTo(0, 0);
+            });
+            li.append(row);
+            return li;
+          }));
+          pastSection.hidden = keys.length === 0;
+        }
+
+        function select(key) {
+          saveNow();
+          selected = key;
+          input.value = typeof entries[key] === 'string' ? entries[key] : '';
+          status.textContent = '';
+          render();
+        }
+
+        function render() {
+          todayKey = dateKey(new Date());
+          title.textContent = selected === todayKey
+            ? 'Today, ' + formatDate(keyToDate(selected), { day: 'numeric', month: 'short' })
+            : formatDate(keyToDate(selected), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+          next.disabled = selected >= todayKey;
+          backToToday.hidden = selected === todayKey;
+          renderPast();
+        }
+
+        prev.addEventListener('click', function () { select(shiftDay(selected, -1)); });
+        next.addEventListener('click', function () { select(shiftDay(selected, 1)); });
+        backToToday.addEventListener('click', function () { select(dateKey(new Date())); });
+        input.addEventListener('input', saveNow);
+        input.addEventListener('blur', saveNow);
+
+        render();
+
+        return {
+          el: el,
+          focusToday: function () {
+            select(dateKey(new Date()));
+            window.scrollTo(0, 0);
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+          },
+          // Moves on to the new day if the app was left open on "today" overnight.
+          refresh: function () {
+            var wasToday = selected === todayKey;
+            var now = dateKey(new Date());
+            if (wasToday && now !== todayKey) select(now);
+            else render();
+          },
+          reload: function () {
+            entries = load();
+            if (document.activeElement !== input) {
+              input.value = typeof entries[selected] === 'string' ? entries[selected] : '';
+            }
+            render();
+          }
+        };
+      }
+
+      var dayLog = createDayLog();
+
       /* ---------- Notes ---------- */
 
       function createNotes() {
@@ -1217,7 +1461,34 @@
         var list = make('ul', 'list notes-list');
         var empty = make('p', 'empty', 'Nothing here yet. Tap + to write your first note.');
         section.append(head, list, empty);
-        panel.append(form, section);
+        var view = 'log';
+        try {
+          if (localStorage.getItem(NOTES_VIEW_KEY) === 'notes') view = 'notes';
+        } catch (err) { /* Start on the daily log */ }
+        var switcher = make('div', 'switcher');
+        var logSwitch = make('button', 'switch-btn', 'Daily log');
+        var notesSwitch = make('button', 'switch-btn', 'Notes');
+        logSwitch.type = 'button';
+        notesSwitch.type = 'button';
+        switcher.append(logSwitch, notesSwitch);
+        var notesView = make('div');
+        notesView.append(form, section);
+        panel.append(switcher, dayLog.el, notesView);
+
+        function showView(name) {
+          view = name;
+          logSwitch.setAttribute('aria-pressed', String(name === 'log'));
+          notesSwitch.setAttribute('aria-pressed', String(name === 'notes'));
+          dayLog.el.hidden = name !== 'log';
+          notesView.hidden = name !== 'notes';
+        }
+        function chooseView(name) {
+          showView(name);
+          try { localStorage.setItem(NOTES_VIEW_KEY, name); } catch (err) { /* only a convenience */ }
+        }
+        logSwitch.addEventListener('click', function () { chooseView('log'); });
+        notesSwitch.addEventListener('click', function () { chooseView('notes'); });
+        showView(view);
 
         function load() {
           var parsed = readJson(NOTES_KEY);
@@ -1363,6 +1634,10 @@
           key: NOTES_KEY,
           name: 'panel-notes',
           openAdd: function () {
+            if (view === 'log') {
+              dayLog.focusToday();
+              return;
+            }
             form.hidden = false;
             window.scrollTo(0, 0);
             input.focus();
@@ -1379,6 +1654,9 @@
       /* ---------- Exercise planner ---------- */
 
       var exercise = loadExercise();
+      var exerciseDetails = loadExerciseDetails();
+      var detailSheet = document.getElementById('detail-sheet');
+      var sheetState = null;
       var weekOffset = 0;
       var planner = document.getElementById('planner');
       var weekTitle = document.getElementById('week-title');
@@ -1388,6 +1666,37 @@
       function loadExercise() {
         var parsed = readJson(EXERCISE_KEY);
         return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      }
+
+      function loadExerciseDetails() {
+        var parsed = readJson(EXERCISE_DETAILS_KEY);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      }
+
+      function detailsFor(key, id) {
+        var day = exerciseDetails[key];
+        var found = day && typeof day === 'object' ? day[id] : null;
+        return found && typeof found === 'object' ? found : {};
+      }
+
+      function setDetails(key, id, values) {
+        if (!exerciseDetails[key] || typeof exerciseDetails[key] !== 'object') exerciseDetails[key] = {};
+        if (Object.keys(values).length) exerciseDetails[key][id] = values;
+        else delete exerciseDetails[key][id];
+        if (!Object.keys(exerciseDetails[key]).length) delete exerciseDetails[key];
+        writeJson(EXERCISE_DETAILS_KEY, exerciseDetails);
+      }
+
+      function formatNumber(value) {
+        return String(Math.round(value * 100) / 100);
+      }
+
+      // Accepts "1.5" or "1,5". Blank gives null, and anything else that isn't a sensible number gives NaN.
+      function parseAmount(text) {
+        var clean = text.trim().replace(',', '.');
+        if (!clean) return null;
+        var value = /^\d*\.?\d+$|^\d+\.$/.test(clean) ? parseFloat(clean) : NaN;
+        return value > 0 && value <= 9999 ? value : NaN;
       }
 
       // Uses the local calendar date, so days don't shift with time zones.
@@ -1426,25 +1735,185 @@
         return Array.isArray(exercise[key]) && exercise[key].indexOf(id) !== -1;
       }
 
-      function toggleActivity(key, id) {
-        var current = Array.isArray(exercise[key]) ? exercise[key] : [];
-        if (current.indexOf(id) !== -1) {
-          current = current.filter(function (a) { return a !== id; });
-        } else {
-          current = current.concat(id);
-        }
-        if (current.length) exercise[key] = current;
-        else delete exercise[key];
-        writeJson(EXERCISE_KEY, exercise);
-        renderPlanner();
+      function focusDayButton(key, id) {
         var button = planner.querySelector('[data-day="' + key + '"][data-activity="' + id + '"]');
         if (button) button.focus({ preventScroll: true });
+      }
+
+      function addActivity(key, id) {
+        var current = Array.isArray(exercise[key]) ? exercise[key] : [];
+        if (current.indexOf(id) === -1) exercise[key] = current.concat(id);
+        writeJson(EXERCISE_KEY, exercise);
+        renderPlanner();
+      }
+
+      function removeActivity(key, activity) {
+        var savedDetails = detailsFor(key, activity.id);
+        var left = exercise[key].filter(function (a) { return a !== activity.id; });
+        if (left.length) exercise[key] = left;
+        else delete exercise[key];
+        writeJson(EXERCISE_KEY, exercise);
+        setDetails(key, activity.id, {});
+        renderPlanner();
+        showToast('Removed ' + activity.label, function () {
+          addActivity(key, activity.id);
+          setDetails(key, activity.id, savedDetails);
+          renderPlanner();
+          focusDayButton(key, activity.id);
+        });
+        toastUndo.focus({ preventScroll: true });
+      }
+
+      // The most recent earlier amount, offered as a quick choice.
+      function lastAmount(key, id, field) {
+        var earlier = Object.keys(exerciseDetails).filter(function (day) { return day < key; }).sort().reverse();
+        for (var i = 0; i < earlier.length; i++) {
+          var value = detailsFor(earlier[i], id)[field];
+          if (typeof value === 'number') return value;
+        }
+        return null;
+      }
+
+      function openDetails(key, activity) {
+        var values = detailsFor(key, activity.id);
+        var inputs = {};
+        var heading = make('h2', 'sheet-title', activity.label);
+        heading.id = 'sheet-title';
+        heading.tabIndex = -1;
+        heading.autofocus = true;
+        var parts = [
+          heading,
+          make('p', 'sheet-date', formatDate(keyToDate(key), { weekday: 'long', day: 'numeric', month: 'long' }))
+        ];
+        var form = make('form');
+        form.autocomplete = 'off';
+        form.noValidate = true;
+
+        activity.fields.forEach(function (name) {
+          var field = FIELDS[name];
+          var box = make('div', 'field');
+          var label = make('label', 'field-label', field.label + ' (optional)');
+          var input = make('input', 'text-input');
+          input.id = 'detail-' + name;
+          label.htmlFor = input.id;
+          input.type = 'text';
+          input.inputMode = name === 'km' ? 'decimal' : 'numeric';
+          input.enterKeyHint = 'done';
+          if (typeof values[name] === 'number') input.value = formatNumber(values[name]);
+          var error = make('p', 'field-error', 'Enter a number, such as ' + field.choices[1] + '.');
+          error.id = input.id + '-error';
+          error.hidden = true;
+          input.addEventListener('input', function () {
+            error.hidden = true;
+            input.removeAttribute('aria-invalid');
+          });
+          inputs[name] = { input: input, error: error };
+
+          var chips = make('div', 'chips');
+          var last = lastAmount(key, activity.id, name);
+          var choices = field.choices.slice();
+          if (last !== null && choices.indexOf(last) === -1) choices.unshift(last);
+          choices.forEach(function (choice) {
+            var chip = make('button', 'chip', formatNumber(choice));
+            chip.type = 'button';
+            chip.setAttribute('aria-label', formatNumber(choice) + ' ' + field.unit);
+            chip.addEventListener('click', function () {
+              input.value = formatNumber(choice);
+              error.hidden = true;
+              input.removeAttribute('aria-invalid');
+              // With only one thing to record, one tap finishes the job.
+              if (activity.fields.length === 1) finishSheet();
+            });
+            chips.append(chip);
+          });
+          box.append(label, input, error, chips);
+          form.append(box);
+        });
+
+        var actions = make('div', 'sheet-actions');
+        var remove = make('button', 'btn btn-ghost', 'Remove');
+        remove.type = 'button';
+        remove.addEventListener('click', function () {
+          sheetState.removed = true;
+          finishSheet();
+        });
+        var done = make('button', 'btn btn-primary', 'Done');
+        done.type = 'submit';
+        actions.append(remove, done);
+        form.append(actions);
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var firstBad = null;
+          Object.keys(inputs).forEach(function (name) {
+            var bad = isNaN(parseAmount(inputs[name].input.value)) && parseAmount(inputs[name].input.value) !== null;
+            inputs[name].error.hidden = !bad;
+            if (bad) {
+              inputs[name].input.setAttribute('aria-invalid', 'true');
+              inputs[name].input.setAttribute('aria-describedby', inputs[name].error.id);
+              if (!firstBad) firstBad = inputs[name].input;
+            }
+          });
+          if (firstBad) firstBad.focus();
+          else finishSheet();
+        });
+        parts.push(form);
+        detailSheet.replaceChildren.apply(detailSheet, parts);
+        sheetState = { key: key, activity: activity, inputs: inputs, removed: false };
+        detailSheet.showModal();
+      }
+
+      // Tapping outside the box or pressing Esc keeps whatever valid amounts were typed.
+      detailSheet.addEventListener('click', function (event) {
+        if (event.target !== detailSheet) return;
+        var box = detailSheet.getBoundingClientRect();
+        var inside = event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+        if (!inside) finishSheet();
+      });
+      // Covers Esc and the phone's back gesture. The event can arrive late, so it never closes a newer box.
+      detailSheet.addEventListener('close', function () {
+        if (!detailSheet.open) finishSheet();
+      });
+
+      function finishSheet() {
+        var state = sheetState;
+        sheetState = null;
+        if (detailSheet.open) detailSheet.close();
+        if (!state) return;
+        if (state.removed) {
+          removeActivity(state.key, state.activity);
+          return;
+        }
+        var saved = {};
+        Object.keys(state.inputs).forEach(function (name) {
+          var value = parseAmount(state.inputs[name].input.value);
+          if (typeof value === 'number' && !isNaN(value)) saved[name] = value;
+        });
+        setDetails(state.key, state.activity.id, saved);
+        renderPlanner();
+        focusDayButton(state.key, state.activity.id);
+      }
+
+      function cellValue(activity, values) {
+        var main = activity.fields[0];
+        if (typeof values[main] === 'number') return formatNumber(values[main]);
+        // Swimming with a time but no distance: the "m" shows it isn't kilometres.
+        if (typeof values.minutes === 'number') return formatNumber(values.minutes) + 'm';
+        return '';
+      }
+
+      function detailWords(activity, values) {
+        return activity.fields
+          .filter(function (name) { return typeof values[name] === 'number'; })
+          .map(function (name) { return formatNumber(values[name]) + ' ' + FIELDS[name].unit; })
+          .join(', ');
       }
 
       function renderPlanner() {
         var days = weekDays(weekOffset);
         var todayKey = dateKey(new Date());
         var totals = ACTIVITIES.map(function () { return 0; });
+        var amounts = ACTIVITIES.map(function () { return 0; });
+        var weekSum = { minutes: 0, km: 0, seconds: 0 };
 
         var head = make('thead');
         var headRow = make('tr');
@@ -1457,6 +1926,7 @@
           th.scope = 'col';
           th.append(make('span', activity.short ? 'label-long' : '', activity.label));
           if (activity.short) th.append(make('span', 'label-short', activity.short));
+          th.append(make('span', 'unit', FIELDS[activity.fields[0]].unit));
           headRow.append(th);
         });
         head.append(headRow);
@@ -1476,16 +1946,28 @@
 
           ACTIVITIES.forEach(function (activity, index) {
             var isOn = hasActivity(key, activity.id);
+            var values = isOn ? detailsFor(key, activity.id) : {};
             if (isOn) totals[index]++;
+            var main = values[activity.fields[0]];
+            if (typeof main === 'number') amounts[index] += main;
+            activity.fields.forEach(function (name) {
+              if (typeof values[name] === 'number') weekSum[name] += values[name];
+            });
+            var shown = cellValue(activity, values);
+            var words = detailWords(activity, values);
             var cell = make('td');
             var button = make('button', 'day-btn');
             button.type = 'button';
             button.dataset.day = key;
             button.dataset.activity = activity.id;
             button.setAttribute('aria-pressed', String(isOn));
-            button.setAttribute('aria-label', activity.label + ', ' + formatDate(date, { weekday: 'long', day: 'numeric', month: 'long' }));
-            button.innerHTML = '<span class="check">' + ICONS.check + '</span>';
-            button.addEventListener('click', function () { toggleActivity(key, activity.id); });
+            button.setAttribute('aria-label', activity.label + ', ' + formatDate(date, { weekday: 'long', day: 'numeric', month: 'long' }) + (words ? ', ' + words : ''));
+            if (shown) button.append(make('span', 'check has-value', shown));
+            else button.innerHTML = '<span class="check">' + ICONS.check + '</span>';
+            button.addEventListener('click', function () {
+              if (!hasActivity(key, activity.id)) addActivity(key, activity.id);
+              openDetails(key, activity);
+            });
             cell.append(button);
             row.append(cell);
           });
@@ -1494,17 +1976,26 @@
 
         var foot = make('tfoot');
         var footRow = make('tr');
-        var footLabel = make('th', '', 'Total');
+        var footLabel = make('th', '', 'Times');
         footLabel.scope = 'row';
         footRow.append(footLabel);
         totals.forEach(function (total) { footRow.append(make('td', '', String(total))); });
-        foot.append(footRow);
+        var sumRow = make('tr');
+        var sumLabel = make('th', '', 'Total');
+        sumLabel.scope = 'row';
+        sumRow.append(sumLabel);
+        amounts.forEach(function (amount) { sumRow.append(make('td', '', amount ? formatNumber(amount) : '–')); });
+        foot.append(footRow, sumRow);
 
         planner.replaceChildren(head, body, foot);
 
         var sessions = totals.reduce(function (sum, n) { return sum + n; }, 0);
         weekTitle.textContent = weekLabel(days);
-        weekCount.textContent = sessions + (sessions === 1 ? ' session' : ' sessions');
+        var summary = [sessions + (sessions === 1 ? ' session' : ' sessions')];
+        ['minutes', 'km', 'seconds'].forEach(function (name) {
+          if (weekSum[name]) summary.push(formatNumber(weekSum[name]) + ' ' + FIELDS[name].unit);
+        });
+        weekCount.textContent = summary.join(' · ');
         weekToday.hidden = weekOffset === 0;
       }
 
@@ -1580,6 +2071,8 @@
       function reloadEverything() {
         lists.forEach(function (list) { list.reload(); });
         exercise = loadExercise();
+        exerciseDetails = loadExerciseDetails();
+        dayLog.reload();
         renderPlanner();
       }
 
@@ -1591,7 +2084,9 @@
           tasks: readJson(LIST_KEYS.tasks) || [],
           shopping: readJson(LIST_KEYS.shopping) || [],
           notes: readJson(NOTES_KEY) || [],
-          exercise: readJson(EXERCISE_KEY) || {}
+          exercise: readJson(EXERCISE_KEY) || {},
+          exerciseDetails: readJson(EXERCISE_DETAILS_KEY) || {},
+          dayLog: readJson(DAY_LOG_KEY) || {}
         };
         var url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
         var link = document.createElement('a');
@@ -1638,6 +2133,52 @@
         return { saved: !added || writeJson(EXERCISE_KEY, current), added: added };
       }
 
+      function isPlainObject(value) {
+        return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+      }
+
+      function mergeExerciseDetails(incoming) {
+        var current = readJson(EXERCISE_DETAILS_KEY);
+        if (!isPlainObject(current)) current = {};
+        var added = 0;
+        if (isPlainObject(incoming)) {
+          Object.keys(incoming).forEach(function (day) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !isPlainObject(incoming[day])) return;
+            Object.keys(incoming[day]).forEach(function (id) {
+              var values = incoming[day][id];
+              if (!isPlainObject(values)) return;
+              Object.keys(values).forEach(function (name) {
+                if (!FIELDS[name] || typeof values[name] !== 'number') return;
+                if (!isPlainObject(current[day])) current[day] = {};
+                if (!isPlainObject(current[day][id])) current[day][id] = {};
+                if (typeof current[day][id][name] === 'number') return;
+                current[day][id][name] = values[name];
+                added++;
+              });
+            });
+          });
+        }
+        return { saved: !added || writeJson(EXERCISE_DETAILS_KEY, current), added: added };
+      }
+
+      // If a day already has different words, both are kept.
+      function mergeDayLog(incoming) {
+        var current = readJson(DAY_LOG_KEY);
+        if (!isPlainObject(current)) current = {};
+        var added = 0;
+        if (isPlainObject(incoming)) {
+          Object.keys(incoming).forEach(function (day) {
+            var text = incoming[day];
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || typeof text !== 'string' || !text.trim()) return;
+            var known = typeof current[day] === 'string' ? current[day] : '';
+            if (known.indexOf(text) !== -1) return;
+            current[day] = known ? known + '\n\n' + text : text;
+            added++;
+          });
+        }
+        return { saved: !added || writeJson(DAY_LOG_KEY, current), added: added };
+      }
+
       function restoreBackup(text) {
         var data = null;
         try { data = JSON.parse(text); } catch (err) { /* Handled just below */ }
@@ -1645,7 +2186,7 @@
           showToast('That file isn\'t a Planner backup', null);
           return;
         }
-        var keys = [LIST_KEYS.tasks, LIST_KEYS.shopping, NOTES_KEY, EXERCISE_KEY];
+        var keys = [LIST_KEYS.tasks, LIST_KEYS.shopping, NOTES_KEY, EXERCISE_KEY, EXERCISE_DETAILS_KEY, DAY_LOG_KEY];
         var before = keys.map(function (key) {
           try { return localStorage.getItem(key); } catch (err) { return null; }
         });
@@ -1653,18 +2194,19 @@
         var shoppingResult = mergeList(LIST_KEYS.shopping, data.shopping);
         var notesResult = mergeList(NOTES_KEY, data.notes);
         var exerciseResult = mergeExercise(data.exercise);
+        var detailsResult = mergeExerciseDetails(data.exerciseDetails);
+        var logResult = mergeDayLog(data.dayLog);
         reloadEverything();
-        if (!tasksResult.saved || !shoppingResult.saved || !notesResult.saved || !exerciseResult.saved) {
+        if (!tasksResult.saved || !shoppingResult.saved || !notesResult.saved || !exerciseResult.saved || !detailsResult.saved || !logResult.saved) {
           showToast('Couldn\'t restore: this page can\'t save', null);
           return;
         }
-        var count = tasksResult.added + shoppingResult.added + notesResult.added;
-        var ticks = exerciseResult.added;
-        if (!count && !ticks) {
+        var count = tasksResult.added + shoppingResult.added + notesResult.added + logResult.added + exerciseResult.added + detailsResult.added;
+        if (!count) {
           showToast('Nothing to restore. You already have it all.', null);
           return;
         }
-        showToast('Restored ' + count + (count === 1 ? ' item' : ' items') + ', ' + ticks + (ticks === 1 ? ' tick' : ' ticks'), function () {
+        showToast('Restored ' + count + (count === 1 ? ' entry' : ' entries'), function () {
           keys.forEach(function (key, index) {
             try {
               if (before[index] === null) localStorage.removeItem(key);
@@ -1694,10 +2236,12 @@
         lists.forEach(function (list) {
           if (event.key === list.key) list.reload();
         });
-        if (event.key === EXERCISE_KEY) {
+        if (event.key === EXERCISE_KEY || event.key === EXERCISE_DETAILS_KEY) {
           exercise = loadExercise();
+          exerciseDetails = loadExerciseDetails();
           renderPlanner();
         }
+        if (event.key === DAY_LOG_KEY) dayLog.reload();
       });
 
       /* ---------- Installed app ---------- */
@@ -1717,6 +2261,7 @@
         if (document.hidden) return;
         renderPlanner();
         updateHeader();
+        dayLog.refresh();
       });
     })();
   </script>

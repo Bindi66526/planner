@@ -1,0 +1,1724 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Planner</title>
+  <meta name="description" content="A personal to-do list, shopping list, exercise planner and notes.">
+  <meta name="theme-color" content="#f7f5fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141022" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Planner">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Purple and yellow theme */
+    :root {
+      color-scheme: light;
+      --bg: #f7f5fc;
+      --surface: #ffffff;
+      --raised: #ffffff;
+      --text: #1f1633;
+      --title: #2e1065;
+      --muted: #62597a;
+      --border: #e4dff2;
+      --accent: #5b21b6;
+      --accent-soft: #efeafc;
+      --accent-contrast: #ffffff;
+      --check-bg: #5b21b6;
+      --yellow: #facc15;
+      --yellow-soft: #fef8d6;
+      --card: #3b0f8c;
+      --shadow: 0 1px 2px rgba(46, 16, 101, .05), 0 4px 14px rgba(46, 16, 101, .06);
+      --toast-bg: #2e1065;
+      --toast-text: #f6f2ff;
+      --toast-action: #facc15;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #141022;
+        --surface: #211a33;
+        --raised: #2b2240;
+        --text: #f3effa;
+        --title: #ffffff;
+        --muted: #b5abc9;
+        --border: #372c52;
+        --accent: #c4b5fd;
+        --accent-soft: #2d2347;
+        --accent-contrast: #1a1033;
+        --check-bg: #6d28d9;
+        --yellow-soft: #3a3214;
+        --card: #4c1d95;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25);
+        --toast-bg: #f3effa;
+        --toast-text: #1f1633;
+        --toast-action: #5b21b6;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 17px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Header */
+    .top {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: max(22px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    }
+    .top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .top-date { margin: 0; color: var(--muted); font-size: .85rem; font-weight: 500; }
+    h1 {
+      font-family: "Sora", "Inter", system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1.9rem;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--title);
+      margin: 0;
+    }
+    .settings { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; }
+    .settings-btn {
+      min-height: 44px;
+      padding: 0 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--accent);
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .app {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 18px max(16px, env(safe-area-inset-right)) calc(100px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    }
+
+    /* Bottom navigation */
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-row {
+      max-width: 560px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: center;
+      padding: 0 6px;
+    }
+    .tab {
+      position: relative;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 0;
+      background: none;
+      border: 0;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 600;
+    }
+    .tab svg { width: 22px; height: 22px; display: block; }
+    .tab[aria-current="page"] { color: var(--accent); }
+    .tab[aria-current="page"]::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 26px;
+      height: 3px;
+      background: var(--yellow);
+      border-radius: 0 0 3px 3px;
+    }
+    .tab:focus-visible { outline-offset: -3px; }
+    .nav-add {
+      justify-self: center;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      background: var(--check-bg);
+      border: 0;
+      border-radius: 50%;
+      color: var(--yellow);
+    }
+    .nav-add svg { width: 24px; height: 24px; display: block; }
+    .nav-add.is-hidden { visibility: hidden; }
+
+    /* Add form */
+    .add { display: flex; gap: 8px; margin-bottom: 24px; }
+    .text-input {
+      flex: 1;
+      min-width: 0;
+      min-height: 48px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem; /* 16px or more stops iPhones zooming in on focus */
+    }
+    .text-input::placeholder { color: var(--muted); opacity: 1; }
+    .text-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .btn {
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 10px;
+      border: 1px solid var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: var(--accent-contrast); }
+    .btn-ghost { background: transparent; color: var(--accent); }
+    .btn:disabled { opacity: .45; cursor: default; }
+
+    /* Sections */
+    section + section { margin-top: 24px; }
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    h2 { font-size: 1.05rem; font-weight: 600; margin: 0; }
+    .count { color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      background: var(--surface);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .list.notes-list { gap: 8px; background: none; box-shadow: none; }
+
+    /* The Today card */
+    .today-card {
+      --text: #ffffff;
+      --muted: #d9cffa;
+      --border: rgba(255, 255, 255, .18);
+      --surface: transparent;
+      --accent: #facc15;
+      --accent-soft: rgba(255, 255, 255, .12);
+      --accent-contrast: #2e1065;
+      padding: 14px 10px 8px;
+      background: var(--card);
+      border-radius: 18px;
+      color: var(--text);
+    }
+    .today-card .section-head { padding: 0 6px; margin-bottom: 4px; }
+    .today-card h2 { color: var(--yellow); }
+    .today-card .count { color: var(--yellow); }
+    .today-card .list { box-shadow: none; }
+    .today-card .empty { margin: 6px 0; }
+    .today-card .text-input { background: rgba(255, 255, 255, .1); }
+    .empty {
+      margin: 0;
+      padding: 18px 16px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* Task row */
+    .task {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      border-top: 1px solid var(--border);
+      padding: 3px;
+    }
+    .task:first-child { border-top-color: transparent; }
+    .icon-btn {
+      flex: none;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      background: none;
+      border: 0;
+      border-radius: 9px;
+      color: var(--muted);
+    }
+    .icon-btn svg { width: 20px; height: 20px; display: block; }
+    .check {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--muted);
+      border-radius: 50%;
+      color: transparent;
+    }
+    .check svg { width: 14px; height: 14px; }
+    .in-today .check {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      color: #2e1065;
+      font-size: .78rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .in-today .check svg { display: none; }
+    [aria-pressed="true"] .check { background: var(--check-bg); border-color: var(--check-bg); color: var(--yellow); }
+    .task-text {
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 44px;
+      padding: 10px 8px 10px 4px;
+      background: none;
+      border: 0;
+      border-radius: 8px;
+      text-align: left;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    .task-actions {
+      flex: 0 0 100%;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 0 6px 6px;
+    }
+    .task-action {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 12px;
+      background: var(--accent-soft);
+      border: 0;
+      border-radius: 9px;
+      color: var(--accent);
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .task-action svg { width: 18px; height: 18px; display: block; }
+    @media (hover: hover) {
+      .icon-btn:hover { background: var(--accent-soft); color: var(--accent); }
+      .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+      .btn-ghost:hover { background: var(--accent-soft); }
+      .tab:hover { color: var(--accent); }
+      .nav-add:hover { filter: brightness(1.15); }
+      .settings-btn:hover, .task-action:hover { filter: brightness(.97); }
+      .js-toggle:hover .check { color: var(--accent); }
+      .in-today .js-toggle:hover .check { color: #2e1065; }
+      .in-today .js-toggle:hover .rank-num { display: none; }
+      .in-today .js-toggle:hover .check svg { display: block; }
+      .day-btn:hover .check { border-color: var(--accent); }
+    }
+
+    /* Drag to rank */
+    .icon-btn.drag-handle {
+      width: 32px;
+      cursor: grab;
+      touch-action: none; /* Lets a finger drag the task instead of scrolling the page */
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .task.drag-placeholder {
+      background: var(--accent-soft);
+      border: 1px dashed var(--accent);
+      border-radius: 12px;
+      box-shadow: none;
+    }
+    .task.drag-placeholder > * { visibility: hidden; }
+    .drag-handle svg { opacity: .55; }
+    .task.drag-ghost {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: fixed;
+      z-index: 20;
+      margin: 0;
+      pointer-events: none;
+      box-shadow: 0 10px 28px rgba(43, 33, 27, .28);
+    }
+    .task.in-today.drag-ghost { background: var(--card); color: #fff; --muted: #d9cffa; }
+    .is-dragging, .is-dragging * {
+      cursor: grabbing !important;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* Edit mode */
+    .task.editing { display: block; padding: 8px; }
+    .task.editing .text-input { width: 100%; }
+    .edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+    /* Notes */
+    .note-form { margin-bottom: 32px; }
+    .note-input {
+      display: block;
+      width: 100%;
+      min-height: 104px;
+      max-height: 55vh;
+      field-sizing: content; /* Grows with the note where the browser supports it */
+      line-height: 1.45;
+      resize: vertical;
+    }
+    .note { padding: 12px 6px 3px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+    .note.editing { padding: 8px; }
+    .note-text { margin: 0; padding-right: 8px; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; }
+    .note-foot { display: flex; align-items: center; justify-content: flex-end; margin-top: 2px; }
+    .note-date { flex: 1; color: var(--muted); font-size: .85rem; }
+
+    /* Exercise planner */
+    .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .week-title { margin: 0; font-size: 1.05rem; font-weight: 600; text-align: center; }
+    .week-meta { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; margin-bottom: 8px; }
+    .link-btn {
+      min-height: 44px;
+      padding: 0 8px;
+      background: none;
+      border: 0;
+      color: var(--accent);
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .planner {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .planner th, .planner td { padding: 0; text-align: center; font-weight: 400; }
+    .planner thead th {
+      padding: 10px 0 8px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .planner .day-col { width: 52px; }
+    .planner tbody th { padding-left: 2px; line-height: 1.15; }
+    .planner tbody tr + tr > * { border-top: 1px solid var(--border); }
+    .day-name { display: block; font-size: .85rem; font-weight: 600; }
+    .day-date { display: block; color: var(--muted); font-size: .75rem; }
+    .planner tr.today > * { background: var(--yellow-soft); }
+    .planner tr.today .day-name { color: var(--accent); }
+    .day-btn {
+      width: 100%;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      background: none;
+      border: 0;
+    }
+    .day-btn:focus-visible { outline-offset: -3px; }
+    .planner tfoot th, .planner tfoot td {
+      padding: 9px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .85rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .planner tfoot th { font-size: .75rem; padding-left: 2px; }
+    .label-short { display: none; }
+    @media (max-width: 459px) {
+      .label-long { display: none; }
+      .label-short { display: inline; }
+    }
+
+    /* Undo message and warning */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      z-index: 15;
+      transform: translateX(-50%);
+      width: min(528px, calc(100vw - 32px));
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 4px 4px 16px;
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(43, 33, 27, .28);
+    }
+    .toast-msg { flex: 1; min-width: 0; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .toast-action {
+      flex: none;
+      min-height: 44px;
+      padding: 0 14px;
+      background: none;
+      border: 0;
+      border-radius: 9px;
+      color: var(--toast-action);
+      font-weight: 600;
+    }
+    .toast-action:focus-visible { outline-color: var(--toast-action); outline-offset: -2px; }
+    .warning {
+      margin: 0 0 20px;
+      padding: 12px 14px;
+      background: var(--accent-soft);
+      border-radius: 10px;
+      font-size: .95rem;
+    }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-row">
+      <div>
+        <p class="top-date" id="top-date"></p>
+        <h1 id="page-title">Planner</h1>
+      </div>
+      <button class="icon-btn" id="settings-toggle" type="button" aria-label="Settings" aria-expanded="false" aria-controls="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      </button>
+    </div>
+    <div class="settings" id="settings" hidden>
+      <button class="settings-btn" id="backup-save" type="button">Save a backup</button>
+      <button class="settings-btn" id="backup-restore" type="button">Restore a backup</button>
+      <input id="backup-file" type="file" accept=".json,application/json" aria-label="Backup file to restore" hidden>
+    </div>
+  </header>
+
+  <main class="app">
+    <p class="warning" id="warning" role="alert" hidden>
+      This browser isn't letting the app save, so your changes will be lost when you close or reload this page.
+    </p>
+
+    <div id="panel-todo" data-panel="todo"></div>
+    <div id="panel-buy" data-panel="buy"></div>
+
+    <div id="panel-exercise" data-panel="exercise">
+      <div class="week-nav">
+        <button class="icon-btn" id="week-prev" type="button" aria-label="Previous week">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <h2 class="week-title" id="week-title" aria-live="polite"></h2>
+        <button class="icon-btn" id="week-next" type="button" aria-label="Next week">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="week-meta">
+        <span class="count" id="week-count"></span>
+        <button class="link-btn" id="week-today" type="button">Back to this week</button>
+      </div>
+      <table class="planner" id="planner"></table>
+    </div>
+
+    <div id="panel-notes" data-panel="notes"></div>
+
+  </main>
+
+  <nav class="bottom-nav" aria-label="Sections">
+    <div class="nav-row">
+      <button class="tab" type="button" data-tab="todo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l2 2 3-4M4 17l2 2 3-4M13 7h7M13 17h7"/></svg>
+        <span>To-do</span>
+      </button>
+      <button class="tab" type="button" data-tab="buy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2.5l2.3 11h10.4L20.5 7.5H6.2"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg>
+        <span>To buy</span>
+      </button>
+      <button class="nav-add" id="nav-add" type="button" aria-label="Add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button class="tab" type="button" data-tab="exercise">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7v10M4 9.5v5M17 7v10M20 9.5v5M7 12h10"/></svg>
+        <span>Exercise</span>
+      </button>
+      <button class="tab" type="button" data-tab="notes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/></svg>
+        <span>Notes</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="toast" id="toast" hidden>
+    <span class="toast-msg" id="toast-msg" role="status"></span>
+    <button class="toast-action" id="toast-undo" type="button">Undo</button>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var TAB_KEY = 'todo-app.tab.v1';
+      var EXERCISE_KEY = 'todo-app.exercise.v1';
+      var NOTES_KEY = 'todo-app.notes.v1';
+      var NOTES_DRAFT_KEY = 'todo-app.notes-draft.v1';
+      var UNDO_MS = 6000;
+
+      var ACTIVITIES = [
+        { id: 'yoga', label: 'Yoga' },
+        { id: 'gym', label: 'Gym' },
+        { id: 'pt', label: 'PT' },
+        { id: 'swimming', label: 'Swimming', short: 'Swim' },
+        { id: 'tennis', label: 'Tennis' },
+        { id: 'dead-hang', label: 'Dead hang' }
+      ];
+
+      var ICONS = {
+        grip: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"/><circle cx="15" cy="6" r="1.8"/><circle cx="9" cy="12" r="1.8"/><circle cx="15" cy="12" r="1.8"/><circle cx="9" cy="18" r="1.8"/><circle cx="15" cy="18" r="1.8"/></svg>',
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4.5 4.5L19 7"/></svg>',
+        edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M14 8l3 3"/></svg>',
+        close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+        trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v5M14 11v5"/></svg>'
+      };
+
+      var warning = document.getElementById('warning');
+      var toast = document.getElementById('toast');
+      var toastMsg = document.getElementById('toast-msg');
+      var toastUndo = document.getElementById('toast-undo');
+      var toastTimer = null;
+      var undoAction = null;
+
+      /* ---------- Saving ---------- */
+
+      function readJson(key) {
+        try {
+          return JSON.parse(localStorage.getItem(key));
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function writeJson(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          warning.hidden = true;
+          return true;
+        } catch (err) {
+          warning.hidden = false;
+          return false;
+        }
+      }
+
+      function make(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+
+      function iconButton(className, label, icon) {
+        var button = make('button', 'icon-btn ' + className);
+        button.type = 'button';
+        button.setAttribute('aria-label', label);
+        button.innerHTML = icon;
+        return button;
+      }
+
+      /* ---------- Undo message ---------- */
+
+      function showToast(message, onUndo) {
+        toastMsg.textContent = message;
+        undoAction = onUndo;
+        toastUndo.hidden = !onUndo;
+        toast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(hideToast, UNDO_MS);
+      }
+
+      function hideToast() {
+        clearTimeout(toastTimer);
+        var hadFocus = document.activeElement === toastUndo;
+        toast.hidden = true;
+        undoAction = null;
+        if (hadFocus) {
+          var current = document.querySelector('.tab[aria-current="page"]');
+          if (current) current.focus({ preventScroll: true });
+        }
+      }
+
+      toastUndo.addEventListener('click', function () {
+        var action = undoAction;
+        hideToast();
+        if (action) action();
+      });
+
+      /* ---------- To-do and To buy lists ---------- */
+
+      function createList(config) {
+        var tasks = load();
+        var editingId = null;
+        var panel = document.getElementById(config.panelId);
+
+        var form = make('form', 'add');
+        form.autocomplete = 'off';
+        var addLabel = make('label', 'sr-only', config.addLabel);
+        addLabel.htmlFor = config.panelId + '-input';
+        var addInput = make('input', 'text-input');
+        addInput.id = config.panelId + '-input';
+        addInput.type = 'text';
+        addInput.placeholder = config.placeholder;
+        addInput.enterKeyHint = 'done';
+        var addButton = make('button', 'btn btn-primary', 'Add');
+        addButton.type = 'submit';
+        var addClose = iconButton('', 'Close', ICONS.close);
+        addClose.addEventListener('click', closeAdd);
+        addInput.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') closeAdd();
+        });
+        form.append(addLabel, addInput, addButton, addClose);
+        form.hidden = true;
+
+        function closeAdd() {
+          form.hidden = true;
+          document.getElementById('nav-add').focus({ preventScroll: true });
+        }
+
+        function buildSection(title) {
+          var section = make('section');
+          var head = make('div', 'section-head');
+          var count = make('span', 'count');
+          head.append(make('h2', '', title), count);
+          var list = make('ul', 'list');
+          var empty = make('p', 'empty');
+          section.append(head, list, empty);
+          return { section: section, count: count, list: list, empty: empty };
+        }
+        var today = config.todayTitle ? buildSection(config.todayTitle) : null;
+        if (today) today.section.classList.add('today-card');
+        var expandedId = null;
+        var open = buildSection(config.openTitle);
+        var announcer = make('p', 'sr-only');
+        announcer.setAttribute('role', 'status');
+        panel.append(form);
+        if (today) panel.append(today.section);
+        panel.append(open.section, announcer);
+        var drag = null;
+
+        function load() {
+          var parsed = readJson(config.key);
+          if (!Array.isArray(parsed)) return [];
+          return parsed.filter(function (t) {
+            return t && typeof t.id === 'string' && typeof t.text === 'string';
+          });
+        }
+
+        function save() { writeJson(config.key, tasks); }
+
+        function findTask(id) {
+          return tasks.filter(function (t) { return t.id === id; })[0];
+        }
+
+        function focusInTask(id, selector) {
+          var target = panel.querySelector('[data-id="' + id + '"] ' + selector);
+          if (!target) target = panel.querySelector('[data-id="' + id + '"] .task-text');
+          if (target) target.focus({ preventScroll: true });
+        }
+
+        // A ticked item leaves the list but stays in saved data, so Undo and backups keep it.
+        function completeTask(id) {
+          var task = findTask(id);
+          if (!task) return;
+          task.done = true;
+          task.doneAt = Date.now();
+          save();
+          render();
+          showToast(config.doneMessage + ' “' + task.text + '”', function () {
+            var current = findTask(id);
+            if (!current) return;
+            current.done = false;
+            current.doneAt = null;
+            save();
+            render();
+            focusInTask(id, '.js-toggle');
+          });
+          toastUndo.focus({ preventScroll: true });
+        }
+
+        function deleteTask(id) {
+          var task = findTask(id);
+          if (!task) return;
+          tasks = tasks.filter(function (t) { return t.id !== id; });
+          save();
+          render();
+          showToast('Deleted “' + task.text + '”', function () {
+            tasks.push(task);
+            save();
+            render();
+            focusInTask(id, '.js-delete');
+          });
+          toastUndo.focus({ preventScroll: true });
+        }
+
+        function closeEdit(id) {
+          editingId = null;
+          render();
+          focusInTask(id, '.js-edit');
+        }
+
+        /* ---------- Ranking ---------- */
+
+        // A smaller rank sits higher. Tasks nobody has ranked yet go newest first, above ranked ones.
+        function rankOf(task) {
+          return typeof task.rank === 'number' ? task.rank : -(task.createdAt || 0);
+        }
+
+        function openTasks(inToday) {
+          return tasks
+            .filter(function (t) { return !t.done && Boolean(t.today) === inToday; })
+            .sort(function (a, b) { return rankOf(a) - rankOf(b); });
+        }
+
+        function ids(items) {
+          return items.map(function (t) { return t.id; });
+        }
+
+        function setOrder(todayIds, laterIds, movedId) {
+          var rank = 0;
+          function apply(id, inToday) {
+            var task = findTask(id);
+            if (!task) return;
+            task.today = inToday;
+            task.rank = rank++;
+          }
+          todayIds.forEach(function (id) { apply(id, true); });
+          laterIds.forEach(function (id) { apply(id, false); });
+          save();
+          render();
+          focusInTask(movedId, '.js-drag');
+          var inToday = todayIds.indexOf(movedId) !== -1;
+          var group = inToday ? todayIds : laterIds;
+          announcer.textContent = 'Moved to ' + (inToday ? config.todayTitle : config.openTitle) +
+            ', position ' + (group.indexOf(movedId) + 1) + ' of ' + group.length + '.';
+        }
+
+        // Arrow keys on the handle do the same job as dragging.
+        function moveWithKey(id, direction) {
+          var todayIds = ids(openTasks(true));
+          var laterIds = ids(openTasks(false));
+          var group = todayIds.indexOf(id) !== -1 ? todayIds : laterIds;
+          var index = group.indexOf(id);
+          var target = index + direction;
+          group.splice(index, 1);
+          if (target >= 0 && target <= group.length) {
+            group.splice(target, 0, id);
+          } else if (today && group === laterIds && direction < 0) {
+            todayIds.push(id);
+          } else if (today && group === todayIds && direction > 0) {
+            laterIds.unshift(id);
+          } else {
+            group.splice(index, 0, id); // Already at the very top or bottom
+          }
+          setOrder(todayIds, laterIds, id);
+        }
+
+        function refreshEmptyBoxes() {
+          (today ? [today, open] : [open]).forEach(function (part) {
+            var hasRows = part.list.children.length > 0;
+            part.list.hidden = !hasRows;
+            part.empty.hidden = hasRows;
+          });
+        }
+
+        function placeDragged() {
+          // Another finger can switch tabs mid-drag. A hidden list has no positions to compare.
+          if (!panel.offsetHeight) {
+            endDrag(false);
+            return;
+          }
+          var y = drag.y;
+          var part = open;
+          if (today) {
+            var todayBottom = today.section.getBoundingClientRect().bottom;
+            var laterTop = open.section.getBoundingClientRect().top;
+            if (y < (todayBottom + laterTop) / 2) part = today;
+          }
+          var before = null;
+          Array.prototype.some.call(part.list.children, function (row) {
+            if (row === drag.li) return false;
+            var box = row.getBoundingClientRect();
+            if (y < box.top + box.height / 2) {
+              before = row;
+              return true;
+            }
+            return false;
+          });
+          var alreadyThere = drag.li.parentNode === part.list &&
+            (before ? drag.li.nextElementSibling === before : drag.li.nextElementSibling === null);
+          if (alreadyThere) return;
+          part.list.insertBefore(drag.li, before);
+          refreshEmptyBoxes();
+        }
+
+        // Scrolls the page when the dragged task nears the top or bottom of the screen.
+        function autoScroll() {
+          if (!drag || !drag.active) return;
+          var edge = 72;
+          var step = 0;
+          if (drag.y < edge) step = (drag.y - edge) / 5;
+          else if (drag.y > window.innerHeight - edge - 64) step = (drag.y - window.innerHeight + edge + 64) / 5; // 64 clears the bottom navigation
+          if (step) {
+            window.scrollBy(0, step);
+            placeDragged();
+            if (!drag) return;
+          }
+          drag.frame = requestAnimationFrame(autoScroll);
+        }
+
+        function beginDrag() {
+          var box = drag.li.getBoundingClientRect();
+          drag.active = true;
+          drag.offsetY = drag.startY - box.top;
+          drag.ghost = drag.li.cloneNode(true);
+          drag.ghost.classList.add('drag-ghost');
+          drag.ghost.setAttribute('aria-hidden', 'true');
+          drag.ghost.inert = true;
+          drag.ghost.style.left = box.left + 'px';
+          drag.ghost.style.width = box.width + 'px';
+          document.body.append(drag.ghost);
+          drag.li.classList.add('drag-placeholder');
+          document.body.classList.add('is-dragging');
+          drag.frame = requestAnimationFrame(autoScroll);
+        }
+
+        function onDragMove(event) {
+          if (!drag || event.pointerId !== drag.pointerId) return;
+          drag.y = event.clientY;
+          if (!drag.active) {
+            if (Math.abs(drag.y - drag.startY) < 4) return;
+            beginDrag();
+          }
+          drag.ghost.style.top = (drag.y - drag.offsetY) + 'px';
+          placeDragged();
+        }
+
+        function onDragUp(event) {
+          if (drag && event.pointerId === drag.pointerId) endDrag(true);
+        }
+
+        function onDragCancel(event) {
+          if (drag && event.pointerId === drag.pointerId) endDrag(false);
+        }
+
+        function onDragKey(event) {
+          if (event.key === 'Escape') endDrag(false);
+        }
+
+        function endDrag(keep) {
+          var ended = drag;
+          drag = null;
+          window.removeEventListener('pointermove', onDragMove);
+          window.removeEventListener('pointerup', onDragUp);
+          window.removeEventListener('pointercancel', onDragCancel);
+          window.removeEventListener('keydown', onDragKey);
+          try { panel.releasePointerCapture(ended.pointerId); } catch (err) { /* Already released */ }
+          if (!ended.active) return;
+          cancelAnimationFrame(ended.frame);
+          ended.ghost.remove();
+          document.body.classList.remove('is-dragging');
+          if (keep) {
+            var rowIds = function (part) {
+              return Array.prototype.map.call(part.list.children, function (row) { return row.dataset.id; });
+            };
+            setOrder(today ? rowIds(today) : [], rowIds(open), ended.id);
+          } else {
+            render();
+            focusInTask(ended.id, '.js-drag');
+          }
+        }
+
+        function startDrag(event, id) {
+          if (drag || event.button !== 0) return;
+          var li = panel.querySelector('[data-id="' + id + '"]');
+          drag = {
+            id: id,
+            li: li,
+            pointerId: event.pointerId,
+            startY: event.clientY,
+            y: event.clientY,
+            active: false,
+            offsetY: 0,
+            ghost: null,
+            frame: null
+          };
+          // Rows move around during a drag, so the panel, which stays put, follows the pointer.
+          try { panel.setPointerCapture(event.pointerId); } catch (err) { /* Window listeners still work */ }
+          window.addEventListener('pointermove', onDragMove);
+          window.addEventListener('pointerup', onDragUp);
+          window.addEventListener('pointercancel', onDragCancel);
+          window.addEventListener('keydown', onDragKey);
+        }
+
+        function dragHandle(task) {
+          var handle = iconButton(
+            'drag-handle js-drag',
+            'Move: ' + task.text + '. Use the up and down arrow keys.',
+            ICONS.grip
+          );
+          handle.addEventListener('pointerdown', function (event) { startDrag(event, task.id); });
+          handle.addEventListener('keydown', function (event) {
+            if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+            event.preventDefault();
+            moveWithKey(task.id, event.key === 'ArrowUp' ? -1 : 1);
+          });
+          return handle;
+        }
+
+        function taskRow(task, number) {
+          var li = make('li', 'task' + (number ? ' in-today' : ''));
+          li.dataset.id = task.id;
+          var isOpen = task.id === expandedId;
+
+          var toggle = iconButton(
+            'js-toggle',
+            config.doneVerb + ': ' + task.text,
+            '<span class="check">' + (number ? '<span class="rank-num">' + number + '</span>' : '') + ICONS.check + '</span>'
+          );
+          toggle.addEventListener('click', function () { completeTask(task.id); });
+
+          var text = make('button', 'task-text', task.text);
+          text.type = 'button';
+          text.setAttribute('aria-expanded', String(isOpen));
+          text.addEventListener('click', function () {
+            expandedId = isOpen ? null : task.id;
+            render();
+            focusInTask(task.id, '.task-text');
+          });
+
+          li.append(dragHandle(task), toggle, text);
+
+          if (isOpen) {
+            var actions = make('div', 'task-actions');
+
+            var edit = make('button', 'task-action js-edit');
+            edit.type = 'button';
+            edit.innerHTML = ICONS.edit;
+            edit.append(make('span', '', 'Edit'));
+            edit.setAttribute('aria-label', 'Edit: ' + task.text);
+            edit.addEventListener('click', function () {
+              editingId = task.id;
+              render();
+              var input = panel.querySelector('[data-id="' + task.id + '"] .text-input');
+              if (input) {
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+              }
+            });
+
+            var del = make('button', 'task-action js-delete');
+            del.type = 'button';
+            del.innerHTML = ICONS.trash;
+            del.append(make('span', '', 'Delete'));
+            del.setAttribute('aria-label', 'Delete: ' + task.text);
+            del.addEventListener('click', function () { deleteTask(task.id); });
+
+            actions.append(edit, del);
+            li.append(actions);
+          }
+          return li;
+        }
+
+        function editRow(task) {
+          var li = make('li', 'task editing');
+          li.dataset.id = task.id;
+
+          var editForm = make('form');
+          editForm.autocomplete = 'off';
+
+          var input = make('input', 'text-input');
+          input.type = 'text';
+          input.value = task.text;
+          input.enterKeyHint = 'done';
+          input.setAttribute('aria-label', 'Edit');
+
+          var actions = make('div', 'edit-actions');
+          var cancel = make('button', 'btn btn-ghost', 'Cancel');
+          cancel.type = 'button';
+          cancel.addEventListener('click', function () { closeEdit(task.id); });
+          var saveBtn = make('button', 'btn btn-primary', 'Save');
+          saveBtn.type = 'submit';
+
+          input.addEventListener('input', function () {
+            saveBtn.disabled = !input.value.trim();
+          });
+          input.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeEdit(task.id);
+          });
+          editForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var value = input.value.trim();
+            if (!value) return;
+            var current = findTask(task.id);
+            if (current) {
+              current.text = value;
+              save();
+            }
+            closeEdit(task.id);
+          });
+
+          actions.append(cancel, saveBtn);
+          editForm.append(input, actions);
+          li.append(editForm);
+          return li;
+        }
+
+        function render() {
+          var todayTasks = today ? openTasks(true) : [];
+          var todo = openTasks(false);
+          var anyDone = tasks.some(function (t) { return t.done; });
+
+          function draw(part, items, numbered) {
+            part.list.replaceChildren.apply(part.list, items.map(function (task, index) {
+              return task.id === editingId ? editRow(task) : taskRow(task, numbered ? index + 1 : 0);
+            }));
+            part.list.hidden = items.length === 0;
+            part.empty.hidden = items.length > 0;
+          }
+          draw(open, todo);
+
+          open.count.textContent = todo.length + ' ' + config.openCount;
+          open.empty.textContent = todayTasks.length > 0
+            ? config.nothingElseText
+            : anyDone ? config.allDoneText : config.emptyText;
+          if (today) {
+            draw(today, todayTasks, true);
+            today.count.textContent = todayTasks.length + ' ' + config.openCount;
+            today.empty.textContent = config.todayEmptyText;
+          }
+        }
+
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var value = addInput.value.trim();
+          addInput.value = '';
+          addInput.focus();
+          if (!value) return;
+          var now = Date.now();
+          tasks.push({
+            id: now.toString(36) + Math.random().toString(36).slice(2, 8),
+            text: value,
+            done: false,
+            createdAt: now,
+            doneAt: null
+          });
+          save();
+          render();
+        });
+
+        render();
+
+        return {
+          key: config.key,
+          name: config.panelId,
+          openAdd: function () {
+            form.hidden = false;
+            window.scrollTo(0, 0);
+            addInput.focus();
+          },
+          reload: function () {
+            if (drag) endDrag(false);
+            tasks = load();
+            if (!editingId) render();
+          }
+        };
+      }
+
+      var lists = [
+        createList({
+          key: 'todo-app.tasks.v1', // Same place as before, so existing tasks carry over
+          panelId: 'panel-todo',
+          addLabel: 'New task',
+          placeholder: 'Add a task',
+          todayTitle: 'Today',
+          openTitle: 'Up next',
+          openCount: 'left',
+          doneVerb: 'Mark as done',
+          doneMessage: 'Finished',
+          todayEmptyText: 'Drag a task here to do it today.',
+          emptyText: 'Nothing here yet. Tap + to add your first task.',
+          nothingElseText: 'Nothing else waiting.',
+          allDoneText: 'All done. Nothing left to do.'
+        }),
+        createList({
+          key: 'todo-app.shopping.v1',
+          panelId: 'panel-buy',
+          addLabel: 'New item to buy',
+          placeholder: 'Add something to buy',
+          openTitle: 'Shopping list',
+          openCount: 'to buy',
+          doneVerb: 'Mark as bought',
+          doneMessage: 'Bought',
+          emptyText: 'Nothing here yet. Tap + to add your first item.',
+          allDoneText: 'All bought. Nothing left to buy.'
+        })
+      ];
+
+      /* ---------- Notes ---------- */
+
+      function createNotes() {
+        var panel = document.getElementById('panel-notes');
+        var notes = load();
+        var editingId = null;
+
+        var form = make('form', 'note-form');
+        form.autocomplete = 'off';
+        var label = make('label', 'sr-only', 'New note');
+        label.htmlFor = 'note-input';
+        var input = make('textarea', 'text-input note-input');
+        input.id = 'note-input';
+        input.placeholder = 'Write a note';
+        // Whatever you've typed but not added yet comes back after a reload.
+        var draft = readJson(NOTES_DRAFT_KEY);
+        if (typeof draft === 'string') input.value = draft;
+        var actions = make('div', 'edit-actions');
+        var closeButton = make('button', 'btn btn-ghost', 'Close');
+        closeButton.type = 'button';
+        closeButton.addEventListener('click', function () {
+          form.hidden = true;
+          document.getElementById('nav-add').focus({ preventScroll: true });
+        });
+        var addButton = make('button', 'btn btn-primary', 'Add note');
+        addButton.type = 'submit';
+        actions.append(closeButton, addButton);
+        form.append(label, input, actions);
+        form.hidden = !input.value; // Stays open if there's an unfinished note
+
+        var section = make('section');
+        var head = make('div', 'section-head');
+        var count = make('span', 'count');
+        head.append(make('h2', '', 'All notes'), count);
+        var list = make('ul', 'list notes-list');
+        var empty = make('p', 'empty', 'Nothing here yet. Tap + to write your first note.');
+        section.append(head, list, empty);
+        panel.append(form, section);
+
+        function load() {
+          var parsed = readJson(NOTES_KEY);
+          if (!Array.isArray(parsed)) return [];
+          return parsed.filter(function (n) {
+            return n && typeof n.id === 'string' && typeof n.text === 'string';
+          });
+        }
+
+        function save() { writeJson(NOTES_KEY, notes); }
+
+        function changedAt(note) { return note.updatedAt || note.createdAt || 0; }
+
+        function firstLine(note) { return note.text.split('\n')[0]; }
+
+        function focusInNote(id, selector) {
+          var target = panel.querySelector('[data-id="' + id + '"] ' + selector);
+          if (target) target.focus({ preventScroll: true });
+        }
+
+        // Ctrl+Enter (Cmd+Enter on a Mac) saves. Plain Enter starts a new line.
+        function saveOnShortcut(field, targetForm) {
+          field.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+              event.preventDefault();
+              targetForm.requestSubmit();
+            }
+          });
+        }
+
+        function closeEdit(id) {
+          editingId = null;
+          render();
+          focusInNote(id, '.js-edit');
+        }
+
+        function deleteNote(note) {
+          notes = notes.filter(function (n) { return n.id !== note.id; });
+          save();
+          render();
+          showToast('Deleted “' + firstLine(note) + '”', function () {
+            notes.push(note);
+            save();
+            render();
+            focusInNote(note.id, '.js-delete');
+          });
+          toastUndo.focus({ preventScroll: true });
+        }
+
+        function noteRow(note) {
+          var li = make('li', 'note');
+          li.dataset.id = note.id;
+          var foot = make('div', 'note-foot');
+          var edit = iconButton('js-edit', 'Edit: ' + firstLine(note), ICONS.edit);
+          edit.addEventListener('click', function () {
+            editingId = note.id;
+            render();
+            var field = panel.querySelector('[data-id="' + note.id + '"] textarea');
+            if (field) {
+              field.focus();
+              field.setSelectionRange(field.value.length, field.value.length);
+            }
+          });
+          var del = iconButton('js-delete', 'Delete: ' + firstLine(note), ICONS.trash);
+          del.addEventListener('click', function () { deleteNote(note); });
+          foot.append(
+            make('span', 'note-date', formatDate(new Date(changedAt(note)), { day: 'numeric', month: 'short', year: 'numeric' })),
+            edit,
+            del
+          );
+          li.append(make('p', 'note-text', note.text), foot);
+          return li;
+        }
+
+        function editRow(note) {
+          var li = make('li', 'note editing');
+          li.dataset.id = note.id;
+          var editForm = make('form');
+          editForm.autocomplete = 'off';
+          var field = make('textarea', 'text-input note-input');
+          field.value = note.text;
+          field.setAttribute('aria-label', 'Edit note');
+          var buttons = make('div', 'edit-actions');
+          var cancel = make('button', 'btn btn-ghost', 'Cancel');
+          cancel.type = 'button';
+          cancel.addEventListener('click', function () { closeEdit(note.id); });
+          var saveBtn = make('button', 'btn btn-primary', 'Save');
+          saveBtn.type = 'submit';
+          field.addEventListener('input', function () {
+            saveBtn.disabled = !field.value.trim();
+          });
+          saveOnShortcut(field, editForm);
+          editForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var value = field.value.trim();
+            if (!value) return;
+            if (value !== note.text) {
+              note.text = value;
+              note.updatedAt = Date.now();
+              save();
+            }
+            closeEdit(note.id);
+          });
+          buttons.append(cancel, saveBtn);
+          editForm.append(field, buttons);
+          li.append(editForm);
+          return li;
+        }
+
+        function render() {
+          var sorted = notes.slice().sort(function (a, b) { return changedAt(b) - changedAt(a); });
+          list.replaceChildren.apply(list, sorted.map(function (note) {
+            return note.id === editingId ? editRow(note) : noteRow(note);
+          }));
+          list.hidden = sorted.length === 0;
+          empty.hidden = sorted.length > 0;
+          count.textContent = sorted.length + (sorted.length === 1 ? ' note' : ' notes');
+        }
+
+        input.addEventListener('input', function () { writeJson(NOTES_DRAFT_KEY, input.value); });
+        saveOnShortcut(input, form);
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          var value = input.value.trim();
+          if (!value) return;
+          var now = Date.now();
+          notes.push({
+            id: now.toString(36) + Math.random().toString(36).slice(2, 8),
+            text: value,
+            createdAt: now,
+            updatedAt: now
+          });
+          save();
+          input.value = '';
+          writeJson(NOTES_DRAFT_KEY, '');
+          input.focus();
+          render();
+        });
+
+        render();
+
+        return {
+          key: NOTES_KEY,
+          name: 'panel-notes',
+          openAdd: function () {
+            form.hidden = false;
+            window.scrollTo(0, 0);
+            input.focus();
+          },
+          reload: function () {
+            notes = load();
+            if (!editingId) render();
+          }
+        };
+      }
+
+      lists.push(createNotes());
+
+      /* ---------- Exercise planner ---------- */
+
+      var exercise = loadExercise();
+      var weekOffset = 0;
+      var planner = document.getElementById('planner');
+      var weekTitle = document.getElementById('week-title');
+      var weekCount = document.getElementById('week-count');
+      var weekToday = document.getElementById('week-today');
+
+      function loadExercise() {
+        var parsed = readJson(EXERCISE_KEY);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      }
+
+      // Uses the local calendar date, so days don't shift with time zones.
+      function dateKey(date) {
+        var month = String(date.getMonth() + 1).padStart(2, '0');
+        var day = String(date.getDate()).padStart(2, '0');
+        return date.getFullYear() + '-' + month + '-' + day;
+      }
+
+      function weekDays(offset) {
+        var now = new Date();
+        var sinceMonday = (now.getDay() + 6) % 7;
+        var days = [];
+        for (var i = 0; i < 7; i++) {
+          days.push(new Date(now.getFullYear(), now.getMonth(), now.getDate() - sinceMonday + offset * 7 + i));
+        }
+        return days;
+      }
+
+      function formatDate(date, options) {
+        return date.toLocaleDateString('en-GB', options);
+      }
+
+      function weekLabel(days) {
+        var first = days[0];
+        var last = days[6];
+        var endText = formatDate(last, { day: 'numeric', month: 'short', year: 'numeric' });
+        if (first.getMonth() === last.getMonth()) return first.getDate() + ' – ' + endText;
+        if (first.getFullYear() === last.getFullYear()) {
+          return formatDate(first, { day: 'numeric', month: 'short' }) + ' – ' + endText;
+        }
+        return formatDate(first, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + endText;
+      }
+
+      function hasActivity(key, id) {
+        return Array.isArray(exercise[key]) && exercise[key].indexOf(id) !== -1;
+      }
+
+      function toggleActivity(key, id) {
+        var current = Array.isArray(exercise[key]) ? exercise[key] : [];
+        if (current.indexOf(id) !== -1) {
+          current = current.filter(function (a) { return a !== id; });
+        } else {
+          current = current.concat(id);
+        }
+        if (current.length) exercise[key] = current;
+        else delete exercise[key];
+        writeJson(EXERCISE_KEY, exercise);
+        renderPlanner();
+        var button = planner.querySelector('[data-day="' + key + '"][data-activity="' + id + '"]');
+        if (button) button.focus({ preventScroll: true });
+      }
+
+      function renderPlanner() {
+        var days = weekDays(weekOffset);
+        var todayKey = dateKey(new Date());
+        var totals = ACTIVITIES.map(function () { return 0; });
+
+        var head = make('thead');
+        var headRow = make('tr');
+        var dayHeader = make('th', 'day-col');
+        dayHeader.scope = 'col';
+        dayHeader.append(make('span', 'sr-only', 'Day'));
+        headRow.append(dayHeader);
+        ACTIVITIES.forEach(function (activity) {
+          var th = make('th');
+          th.scope = 'col';
+          th.append(make('span', activity.short ? 'label-long' : '', activity.label));
+          if (activity.short) th.append(make('span', 'label-short', activity.short));
+          headRow.append(th);
+        });
+        head.append(headRow);
+
+        var body = make('tbody');
+        days.forEach(function (date) {
+          var key = dateKey(date);
+          var row = make('tr', key === todayKey ? 'today' : '');
+          var dayCell = make('th');
+          dayCell.scope = 'row';
+          if (key === todayKey) dayCell.setAttribute('aria-current', 'date');
+          dayCell.append(
+            make('span', 'day-name', formatDate(date, { weekday: 'short' })),
+            make('span', 'day-date', String(date.getDate()))
+          );
+          row.append(dayCell);
+
+          ACTIVITIES.forEach(function (activity, index) {
+            var isOn = hasActivity(key, activity.id);
+            if (isOn) totals[index]++;
+            var cell = make('td');
+            var button = make('button', 'day-btn');
+            button.type = 'button';
+            button.dataset.day = key;
+            button.dataset.activity = activity.id;
+            button.setAttribute('aria-pressed', String(isOn));
+            button.setAttribute('aria-label', activity.label + ', ' + formatDate(date, { weekday: 'long', day: 'numeric', month: 'long' }));
+            button.innerHTML = '<span class="check">' + ICONS.check + '</span>';
+            button.addEventListener('click', function () { toggleActivity(key, activity.id); });
+            cell.append(button);
+            row.append(cell);
+          });
+          body.append(row);
+        });
+
+        var foot = make('tfoot');
+        var footRow = make('tr');
+        var footLabel = make('th', '', 'Total');
+        footLabel.scope = 'row';
+        footRow.append(footLabel);
+        totals.forEach(function (total) { footRow.append(make('td', '', String(total))); });
+        foot.append(footRow);
+
+        planner.replaceChildren(head, body, foot);
+
+        var sessions = totals.reduce(function (sum, n) { return sum + n; }, 0);
+        weekTitle.textContent = weekLabel(days);
+        weekCount.textContent = sessions + (sessions === 1 ? ' session' : ' sessions');
+        weekToday.hidden = weekOffset === 0;
+      }
+
+      document.getElementById('week-prev').addEventListener('click', function () { weekOffset--; renderPlanner(); });
+      document.getElementById('week-next').addEventListener('click', function () { weekOffset++; renderPlanner(); });
+      weekToday.addEventListener('click', function () { weekOffset = 0; renderPlanner(); });
+
+      renderPlanner();
+
+      /* ---------- Tabs ---------- */
+
+      var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+      var panels = Array.prototype.slice.call(document.querySelectorAll('[data-panel]'));
+
+      var currentTab = 'todo';
+      var navAdd = document.getElementById('nav-add');
+      var settingsToggle = document.getElementById('settings-toggle');
+      var settingsPanel = document.getElementById('settings');
+      var TAB_TITLES = { buy: 'To buy', exercise: 'Exercise', notes: 'Notes' };
+
+      function updateHeader() {
+        var now = new Date();
+        var onTodo = currentTab === 'todo';
+        document.getElementById('page-title').textContent = onTodo
+          ? formatDate(now, { weekday: 'long' })
+          : TAB_TITLES[currentTab];
+        document.getElementById('top-date').textContent = formatDate(
+          now,
+          onTodo ? { day: 'numeric', month: 'long' } : { weekday: 'long', day: 'numeric', month: 'long' }
+        );
+      }
+
+      function showTab(name) {
+        currentTab = name;
+        updateHeader();
+        navAdd.classList.toggle('is-hidden', name === 'exercise');
+        tabs.forEach(function (tab) {
+          if (tab.dataset.tab === name) tab.setAttribute('aria-current', 'page');
+          else tab.removeAttribute('aria-current');
+        });
+        panels.forEach(function (panel) {
+          panel.hidden = panel.dataset.panel !== name;
+        });
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          showTab(tab.dataset.tab);
+          window.scrollTo(0, 0);
+          try { localStorage.setItem(TAB_KEY, tab.dataset.tab); } catch (err) { /* only a convenience */ }
+        });
+      });
+
+      navAdd.addEventListener('click', function () {
+        var target = lists.filter(function (list) { return list.name === 'panel-' + currentTab; })[0];
+        if (target) target.openAdd();
+      });
+
+      settingsToggle.addEventListener('click', function () {
+        settingsPanel.hidden = !settingsPanel.hidden;
+        settingsToggle.setAttribute('aria-expanded', String(!settingsPanel.hidden));
+      });
+
+      var savedTab = null;
+      try { savedTab = localStorage.getItem(TAB_KEY); } catch (err) { /* start on the first tab */ }
+      showTab(tabs.some(function (t) { return t.dataset.tab === savedTab; }) ? savedTab : 'todo');
+
+      /* ---------- Backups ---------- */
+
+      var LIST_KEYS = { tasks: 'todo-app.tasks.v1', shopping: 'todo-app.shopping.v1' };
+      var backupFile = document.getElementById('backup-file');
+
+      function reloadEverything() {
+        lists.forEach(function (list) { list.reload(); });
+        exercise = loadExercise();
+        renderPlanner();
+      }
+
+      function saveBackup() {
+        var data = {
+          app: 'planner',
+          version: 1,
+          savedAt: new Date().toISOString(),
+          tasks: readJson(LIST_KEYS.tasks) || [],
+          shopping: readJson(LIST_KEYS.shopping) || [],
+          notes: readJson(NOTES_KEY) || [],
+          exercise: readJson(EXERCISE_KEY) || {}
+        };
+        var url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'planner-backup-' + dateKey(new Date()) + '.json';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+        showToast('Backup saved to your downloads', null);
+      }
+
+      // Restoring only adds what's missing, so it can never remove something you have now.
+      function mergeList(key, incoming) {
+        var current = readJson(key);
+        if (!Array.isArray(current)) current = [];
+        var seen = current.map(function (t) { return t && t.id; });
+        var added = 0;
+        (Array.isArray(incoming) ? incoming : []).forEach(function (t) {
+          if (!t || typeof t.id !== 'string' || typeof t.text !== 'string' || seen.indexOf(t.id) !== -1) return;
+          current.push(t);
+          seen.push(t.id);
+          added++;
+        });
+        return { saved: !added || writeJson(key, current), added: added };
+      }
+
+      function mergeExercise(incoming) {
+        var current = readJson(EXERCISE_KEY);
+        if (!current || typeof current !== 'object' || Array.isArray(current)) current = {};
+        var added = 0;
+        if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
+          Object.keys(incoming).forEach(function (day) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Array.isArray(incoming[day])) return;
+            incoming[day].forEach(function (activity) {
+              if (typeof activity !== 'string') return;
+              var known = Array.isArray(current[day]) ? current[day] : [];
+              if (known.indexOf(activity) !== -1) return;
+              current[day] = known.concat(activity);
+              added++;
+            });
+          });
+        }
+        return { saved: !added || writeJson(EXERCISE_KEY, current), added: added };
+      }
+
+      function restoreBackup(text) {
+        var data = null;
+        try { data = JSON.parse(text); } catch (err) { /* Handled just below */ }
+        if (!data || data.app !== 'planner') {
+          showToast('That file isn\'t a Planner backup', null);
+          return;
+        }
+        var keys = [LIST_KEYS.tasks, LIST_KEYS.shopping, NOTES_KEY, EXERCISE_KEY];
+        var before = keys.map(function (key) {
+          try { return localStorage.getItem(key); } catch (err) { return null; }
+        });
+        var tasksResult = mergeList(LIST_KEYS.tasks, data.tasks);
+        var shoppingResult = mergeList(LIST_KEYS.shopping, data.shopping);
+        var notesResult = mergeList(NOTES_KEY, data.notes);
+        var exerciseResult = mergeExercise(data.exercise);
+        reloadEverything();
+        if (!tasksResult.saved || !shoppingResult.saved || !notesResult.saved || !exerciseResult.saved) {
+          showToast('Couldn\'t restore: this page can\'t save', null);
+          return;
+        }
+        var count = tasksResult.added + shoppingResult.added + notesResult.added;
+        var ticks = exerciseResult.added;
+        if (!count && !ticks) {
+          showToast('Nothing to restore. You already have it all.', null);
+          return;
+        }
+        showToast('Restored ' + count + (count === 1 ? ' item' : ' items') + ', ' + ticks + (ticks === 1 ? ' tick' : ' ticks'), function () {
+          keys.forEach(function (key, index) {
+            try {
+              if (before[index] === null) localStorage.removeItem(key);
+              else localStorage.setItem(key, before[index]);
+            } catch (err) { warning.hidden = false; }
+          });
+          reloadEverything();
+        });
+      }
+
+      document.getElementById('backup-save').addEventListener('click', saveBackup);
+      document.getElementById('backup-restore').addEventListener('click', function () { backupFile.click(); });
+      backupFile.addEventListener('change', function () {
+        var file = backupFile.files[0];
+        backupFile.value = '';
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () { restoreBackup(String(reader.result)); };
+        reader.onerror = function () { showToast('Couldn\'t read that file', null); };
+        reader.readAsText(file);
+      });
+
+      /* ---------- Keeping things current ---------- */
+
+      // If the app is open in two tabs, keep them from overwriting each other.
+      window.addEventListener('storage', function (event) {
+        lists.forEach(function (list) {
+          if (event.key === list.key) list.reload();
+        });
+        if (event.key === EXERCISE_KEY) {
+          exercise = loadExercise();
+          renderPlanner();
+        }
+      });
+
+      /* ---------- Installed app ---------- */
+
+      if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function () { /* Works online without it */ });
+        });
+      }
+      // Asks the phone not to clear saved lists when it runs short of space.
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(function () { /* Not every browser allows this */ });
+      }
+
+      // Moves the "today" highlight and date on if the page was left open overnight.
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) return;
+        renderPlanner();
+        updateHeader();
+      });
+    })();
+  </script>
+</body>
+</html>

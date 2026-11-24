@@ -509,7 +509,9 @@
       font-weight: 600;
       border-bottom: 1px solid var(--border);
     }
-    .planner .day-col { width: 52px; }
+    .planner .day-col { width: 46px; }
+    .hang-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .hang-label { display: block; margin-bottom: 4px; color: var(--muted); font-size: .85rem; }
     .planner thead th { vertical-align: bottom; }
     .unit { display: block; font-size: .69rem; font-weight: 500; }
     .check.has-value {
@@ -547,10 +549,15 @@
       font-variant-numeric: tabular-nums;
     }
     .planner tfoot th { font-size: .75rem; padding-left: 2px; }
+    /* Short column names, used only on screens too narrow for the full ones */
     .label-short { display: none; }
-    @media (max-width: 459px) {
-      .label-long { display: none; }
-      .label-short { display: inline; }
+    @media (max-width: 519px) {
+      .label-long.wide { display: none; }
+      .label-short.wide { display: inline; }
+    }
+    @media (max-width: 359px) {
+      .label-long.narrow { display: none; }
+      .label-short.narrow { display: inline; }
     }
 
     /* Undo message and warning */
@@ -686,7 +693,8 @@
       var FIELDS = {
         minutes: { label: 'Minutes', unit: 'min', choices: [30, 45, 60] },
         km: { label: 'Kilometres', unit: 'km', choices: [0.5, 1, 1.5, 2] },
-        seconds: { label: 'Seconds', unit: 'sec', choices: [30, 45, 60] }
+        // Up to three dead hangs a day, each timed in seconds.
+        seconds: { label: 'Seconds for each hang', unit: 'sec', choices: [30, 45, 60], repeat: 3, itemLabel: 'Hang' }
       };
 
       // The first field is what the weekly table shows and totals.
@@ -694,8 +702,9 @@
         { id: 'yoga', label: 'Yoga', fields: ['minutes'] },
         { id: 'gym', label: 'Gym', fields: ['minutes'] },
         { id: 'pt', label: 'PT', fields: ['minutes'] },
-        { id: 'swimming', label: 'Swimming', short: 'Swim', fields: ['km', 'minutes'] },
-        { id: 'tennis', label: 'Tennis', fields: ['minutes'] },
+        { id: 'physio', label: 'Physio', short: 'Phys', shortBelow: 'narrow', fields: ['minutes'] },
+        { id: 'swimming', label: 'Swimming', short: 'Swim', shortBelow: 'wide', fields: ['km', 'minutes'] },
+        { id: 'tennis', label: 'Tennis', short: 'Tenn', shortBelow: 'narrow', fields: ['minutes'] },
         { id: 'dead-hang', label: 'Dead hang', fields: ['seconds'] }
       ];
 
@@ -1715,6 +1724,18 @@
         writeJson(EXERCISE_DETAILS_KEY, exerciseDetails);
       }
 
+      function amountList(value) {
+        if (typeof value === 'number') return [value];
+        if (Array.isArray(value)) return value.filter(function (n) { return typeof n === 'number'; });
+        return [];
+      }
+
+      // The total for one day, for example three hangs added together.
+      function amountOf(value) {
+        var list = amountList(value);
+        return list.length ? list.reduce(function (sum, n) { return sum + n; }, 0) : null;
+      }
+
       function formatNumber(value) {
         return String(Math.round(value * 100) / 100);
       }
@@ -1796,7 +1817,7 @@
       function lastAmount(key, id, field) {
         var earlier = Object.keys(exerciseDetails).filter(function (day) { return day < key; }).sort().reverse();
         for (var i = 0; i < earlier.length; i++) {
-          var value = detailsFor(earlier[i], id)[field];
+          var value = amountList(detailsFor(earlier[i], id)[field])[0];
           if (typeof value === 'number') return value;
         }
         return null;
@@ -1804,7 +1825,7 @@
 
       function openDetails(key, activity) {
         var values = detailsFor(key, activity.id);
-        var inputs = {};
+        var inputs = [];
         var heading = make('h2', 'sheet-title', activity.label);
         heading.id = 'sheet-title';
         heading.tabIndex = -1;
@@ -1820,22 +1841,48 @@
         activity.fields.forEach(function (name) {
           var field = FIELDS[name];
           var box = make('div', 'field');
-          var label = make('label', 'field-label', field.label + ' (optional)');
-          var input = make('input', 'text-input');
-          input.id = 'detail-' + name;
-          label.htmlFor = input.id;
-          input.type = 'text';
-          input.inputMode = name === 'km' ? 'decimal' : 'numeric';
-          input.enterKeyHint = 'done';
-          if (typeof values[name] === 'number') input.value = formatNumber(values[name]);
+          var count = field.repeat || 1;
+          var saved = amountList(values[name]);
           var error = make('p', 'field-error', 'Enter a number, such as ' + field.choices[1] + '.');
-          error.id = input.id + '-error';
+          error.id = 'detail-' + name + '-error';
           error.hidden = true;
-          input.addEventListener('input', function () {
-            error.hidden = true;
-            input.removeAttribute('aria-invalid');
-          });
-          inputs[name] = { input: input, error: error };
+          var group = [];
+
+          function makeInput(index) {
+            var input = make('input', 'text-input');
+            input.id = 'detail-' + name + (count > 1 ? '-' + (index + 1) : '');
+            input.type = 'text';
+            input.inputMode = name === 'km' ? 'decimal' : 'numeric';
+            input.enterKeyHint = 'done';
+            if (typeof saved[index] === 'number') input.value = formatNumber(saved[index]);
+            input.addEventListener('input', function () {
+              error.hidden = true;
+              input.removeAttribute('aria-invalid');
+            });
+            group.push(input);
+            inputs.push({ name: name, repeat: count > 1, input: input, error: error });
+            return input;
+          }
+
+          if (count > 1) {
+            box.append(make('p', 'field-label', field.label + ' (optional)'));
+            var row = make('div', 'hang-inputs');
+            for (var i = 0; i < count; i++) {
+              var cell = make('div');
+              var small = make('label', 'hang-label', field.itemLabel + ' ' + (i + 1));
+              var input = makeInput(i);
+              small.htmlFor = input.id;
+              input.setAttribute('aria-label', field.itemLabel + ' ' + (i + 1) + ', ' + field.unit);
+              cell.append(small, input);
+              row.append(cell);
+            }
+            box.append(row);
+          } else {
+            var label = make('label', 'field-label', field.label + ' (optional)');
+            var single = makeInput(0);
+            label.htmlFor = single.id;
+            box.append(label, single);
+          }
 
           var chips = make('div', 'chips');
           var last = lastAmount(key, activity.id, name);
@@ -1846,15 +1893,17 @@
             chip.type = 'button';
             chip.setAttribute('aria-label', formatNumber(choice) + ' ' + field.unit);
             chip.addEventListener('click', function () {
-              input.value = formatNumber(choice);
+              // Fills the next empty box, or the last one when they're all full.
+              var target = group.filter(function (el) { return !el.value.trim(); })[0] || group[group.length - 1];
+              target.value = formatNumber(choice);
               error.hidden = true;
-              input.removeAttribute('aria-invalid');
+              target.removeAttribute('aria-invalid');
               // With only one thing to record, one tap finishes the job.
-              if (activity.fields.length === 1) finishSheet();
+              if (activity.fields.length === 1 && count === 1) finishSheet();
             });
             chips.append(chip);
           });
-          box.append(label, input, error, chips);
+          box.append(error, chips);
           form.append(box);
         });
 
@@ -1872,13 +1921,14 @@
         form.addEventListener('submit', function (event) {
           event.preventDefault();
           var firstBad = null;
-          Object.keys(inputs).forEach(function (name) {
-            var bad = isNaN(parseAmount(inputs[name].input.value)) && parseAmount(inputs[name].input.value) !== null;
-            inputs[name].error.hidden = !bad;
+          inputs.forEach(function (entry) { entry.error.hidden = true; });
+          inputs.forEach(function (entry) {
+            var bad = isNaN(parseAmount(entry.input.value)) && parseAmount(entry.input.value) !== null;
             if (bad) {
-              inputs[name].input.setAttribute('aria-invalid', 'true');
-              inputs[name].input.setAttribute('aria-describedby', inputs[name].error.id);
-              if (!firstBad) firstBad = inputs[name].input;
+              entry.error.hidden = false;
+              entry.input.setAttribute('aria-invalid', 'true');
+              entry.input.setAttribute('aria-describedby', entry.error.id);
+              if (!firstBad) firstBad = entry.input;
             }
           });
           if (firstBad) firstBad.focus();
@@ -1912,9 +1962,11 @@
           return;
         }
         var saved = {};
-        Object.keys(state.inputs).forEach(function (name) {
-          var value = parseAmount(state.inputs[name].input.value);
-          if (typeof value === 'number' && !isNaN(value)) saved[name] = value;
+        state.inputs.forEach(function (entry) {
+          var value = parseAmount(entry.input.value);
+          if (typeof value !== 'number' || isNaN(value)) return;
+          if (entry.repeat) saved[entry.name] = (saved[entry.name] || []).concat(value);
+          else saved[entry.name] = value;
         });
         setDetails(state.key, state.activity.id, saved);
         renderPlanner();
@@ -1922,17 +1974,18 @@
       }
 
       function cellValue(activity, values) {
-        var main = activity.fields[0];
-        if (typeof values[main] === 'number') return formatNumber(values[main]);
+        var main = amountOf(values[activity.fields[0]]);
+        if (main !== null) return formatNumber(main);
         // Swimming with a time but no distance: the "m" shows it isn't kilometres.
-        if (typeof values.minutes === 'number') return formatNumber(values.minutes) + 'm';
+        var minutes = amountOf(values.minutes);
+        if (minutes !== null) return formatNumber(minutes) + 'm';
         return '';
       }
 
       function detailWords(activity, values) {
         return activity.fields
-          .filter(function (name) { return typeof values[name] === 'number'; })
-          .map(function (name) { return formatNumber(values[name]) + ' ' + FIELDS[name].unit; })
+          .filter(function (name) { return amountList(values[name]).length > 0; })
+          .map(function (name) { return amountList(values[name]).map(formatNumber).join(' + ') + ' ' + FIELDS[name].unit; })
           .join(', ');
       }
 
@@ -1952,8 +2005,12 @@
         ACTIVITIES.forEach(function (activity) {
           var th = make('th');
           th.scope = 'col';
-          th.append(make('span', activity.short ? 'label-long' : '', activity.label));
-          if (activity.short) th.append(make('span', 'label-short', activity.short));
+          th.append(make('span', activity.short ? 'label-long ' + activity.shortBelow : '', activity.label));
+          if (activity.short) {
+            var shortName = make('span', 'label-short ' + activity.shortBelow, activity.short);
+            shortName.setAttribute('aria-hidden', 'true'); // Screen readers hear the full name
+            th.append(shortName);
+          }
           th.append(make('span', 'unit', FIELDS[activity.fields[0]].unit));
           headRow.append(th);
         });
@@ -1976,10 +2033,11 @@
             var isOn = hasActivity(key, activity.id);
             var values = isOn ? detailsFor(key, activity.id) : {};
             if (isOn) totals[index]++;
-            var main = values[activity.fields[0]];
-            if (typeof main === 'number') amounts[index] += main;
+            var main = amountOf(values[activity.fields[0]]);
+            if (main !== null) amounts[index] += main;
             activity.fields.forEach(function (name) {
-              if (typeof values[name] === 'number') weekSum[name] += values[name];
+              var amount = amountOf(values[name]);
+              if (amount !== null) weekSum[name] += amount;
             });
             var shown = cellValue(activity, values);
             var words = detailWords(activity, values);
@@ -2176,11 +2234,12 @@
               var values = incoming[day][id];
               if (!isPlainObject(values)) return;
               Object.keys(values).forEach(function (name) {
-                if (!FIELDS[name] || typeof values[name] !== 'number') return;
+                var list = amountList(values[name]);
+                if (!FIELDS[name] || !list.length) return;
                 if (!isPlainObject(current[day])) current[day] = {};
                 if (!isPlainObject(current[day][id])) current[day][id] = {};
-                if (typeof current[day][id][name] === 'number') return;
-                current[day][id][name] = values[name];
+                if (amountList(current[day][id][name]).length) return;
+                current[day][id][name] = Array.isArray(values[name]) ? list.slice(0, 3) : list[0];
                 added++;
               });
             });
